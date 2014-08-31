@@ -5,6 +5,7 @@ from boto import ec2
 import argparse
 import sys
 import paramiko
+import json
 
 class Ec2Ssh(object):
 
@@ -24,9 +25,9 @@ class Ec2Ssh(object):
 
     def print_instance_table(self, instances):
         counter = 1
-        table = PrettyTable(["Number", "id"])
+        table = PrettyTable(["Number", "ID", "Tags"])
         for instance in instances:
-            table.add_row([counter, instance.id])
+            table.add_row([counter, instance.id, instance.tags])
             counter += 1
         print table
 
