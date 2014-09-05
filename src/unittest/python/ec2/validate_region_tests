@@ -1,0 +1,23 @@
+import unittest
+
+import ec2.validate_region
+
+
+class ValidateRegionTests (unittest.TestCase):
+
+    REGIONS_LIST = ["eu-west-1","us-east-1"]
+
+    def test_validation_returns_true_for_match(self):
+        self.assertEqual(ec2.validate_region.example_validate_region_name(self.REGIONS_LIST, "eu-west-1"), True)
+
+    def test_validation_returns_false_for_no_match(self):
+        self.assertEqual(ec2.validate_region.example_validate_region_name(self.REGIONS_LIST, "eu-west-2"), False)
+
+    def test_validation_returns_false_for_empty_string(self):
+        self.assertEqual(ec2.validate_region.example_validate_region_name(self.REGIONS_LIST, ""), False)
+
+    def test_validation_returns_false_for_none(self):
+        self.assertEqual(ec2.validate_region.example_validate_region_name(self.REGIONS_LIST, None), False)
+
+    def test_validation_ignores_case(self):
+        self.assertEqual(ec2.validate_region.example_validate_region_name(self.REGIONS_LIST, "EU-WEST-1"), True)

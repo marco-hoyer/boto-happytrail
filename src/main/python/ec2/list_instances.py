@@ -70,13 +70,11 @@ def print_list_of_instances():
 def print_instance_ids():
     aws = ec2.connect_to_region("eu-west-1")
 
-#TODO: print all instances name tags if they are set
+#TODO: print all instances in a nice table
 def print_instance_names():
     aws = ec2.connect_to_region("eu-west-1")
 
-#TODO: print a pretty table with all instances
-    aws = ec2.connect_to_region("eu-west-1")
-
+    #TODO: print a pretty table with all instances
     table = PrettyTable(["ID", "IP", "AZ", "Tags", "State", "Hypervisor"])
 
 
