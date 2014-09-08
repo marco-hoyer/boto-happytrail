@@ -16,4 +16,5 @@ def initialize(project):
 
     project.build_depends_on("mock")
     project.depends_on("boto")
+    project.depends_on("prettytable")
 

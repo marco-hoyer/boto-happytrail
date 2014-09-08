@@ -4,40 +4,33 @@ from prettytable import PrettyTable
 from boto import ec2
 import argparse
 import sys
-import paramiko
-import json
+
 
 class Ec2Ssh(object):
 
     def __init__(self, region):
         self.aws = ec2.connect_to_region(region)
 
-    def ssh(self, host):
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(host, username='ec2-user')
-
     def get_instances(self, filter):
-        reservations = self.aws.get_all_instances(filters=filter)
-        #TODO: rethink iteration over reservations, should never happen?!
-        for reservation in reservations:
-            return reservation.instances
+        instances = []
 
-    def print_instance_table(self, instances):
-        counter = 1
-        table = PrettyTable(["Number", "ID", "Tags"])
-        for instance in instances:
-            table.add_row([counter, instance.id, instance.tags])
-            counter += 1
-        print table
+        reservations = self.aws.get_all_reservations(filters=filter)
+        for reservation in reservations:
+            instances.extend(reservation.instances)
+
+        return instances
 
     def select_instance(self, instances):
+
         self.print_instance_table(instances)
         selection = raw_input("Choose number:")
+
         try:
             return instances[int(selection)-1]
         except IndexError:
-            return None
+            raise Exception("Choice is out of bounds!")
+        except ValueError:
+            raise Exception("Invalid choice!")
 
     def get_instances_by_id(self, id):
         return self.get_instances({"instance-id": str(id)})
@@ -48,16 +41,33 @@ class Ec2Ssh(object):
     def get_instances_by_tag_value(self, tag_value):
         return self.get_instances({"tag-key": str(tag_value)})
 
-    def get_instance_private_ip(self, instance):
-        return instance.private_ip_address
-
     def connect_to_instance(self, instance):
-        print self.get_instance_private_ip(instance)
-        self.ssh(self.get_instance_private_ip(instance))
+        print "ssh ec2-user@%s" % str(self.get_instance_private_ip(instance))
+        #self.ssh(self.get_instance_private_ip(instance))
+
+    @staticmethod
+    def get_instance_private_ip(instance):
+        if instance:
+            return instance.private_ip_address
+        else:
+            raise Exception("Instance has no private ip address")
+
+    @staticmethod
+    def print_instance_table(instances):
+
+        counter = 1
+        table = PrettyTable(["Number", "ID", "Tags"])
+
+        for instance in instances:
+            table.add_row([counter, instance.id, instance.tags])
+            counter += 1
+
+        print table
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--id', help="Instance ID", type=str, default="i-bfa0cffc")
+    parser.add_argument('--id', help="Instance ID", type=str, default=None)
     parser.add_argument('--tagkey', help="Tag key to search for", type=str, default=None)
     parser.add_argument('--tagvalue', help="Tag value to search for", type=str, default=None)
     parser.add_argument('--region', help="Tag value to search for", type=str, default="eu-west-1")
@@ -77,7 +87,7 @@ if __name__ == '__main__':
         print "Nothing supplied, what shall I do?"
         sys.exit(1)
 
-    if len(instances) is 0:
+    if len(instances) == 0:
         print "No matching instance found."
         sys.exit(1)
     elif len(instances) > 1:
